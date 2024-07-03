@@ -1,10 +1,14 @@
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torchvision
 from torch.utils.data import DataLoader, random_split
+from torch.utils.tensorboard import SummaryWriter
 from torchvision import transforms as transforms
 
 from model import ConvNet
+
+summary = SummaryWriter("runs/animal_classifier")
 
 # Selecting device to train on
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -52,11 +56,37 @@ test_dataset.dataset.transform = test_transform
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
+examples = iter(train_loader)
+samples, labels = next(examples)
+
+class_names = [
+    "Bear",
+    "Bird",
+    "Cat",
+    "Cow",
+    "Deer",
+    "Dog",
+    "Dolphin",
+    "Elephant",
+    "Giraffe",
+    "Horse",
+    "Kangaroo",
+    "Lion",
+    "Panda",
+    "Tiger",
+    "Zebra",
+]
+
+image_grid = torchvision.utils.make_grid(samples)
+summary.add_image("samples", image_grid, 0)
+
 
 # Init Model
 model = ConvNet(num_classes=num_classes).to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+summary.add_graph(model, samples.reshape(-1, 3, 227, 227).to(device))
 
 
 n_total_steps = len(train_loader)
@@ -101,6 +131,9 @@ for epoch in range(num_epochs):
         f"Epoch [{epoch+1}/{num_epochs}], Train Accuracy: {train_accuracy:.2f}%, \
             loss: {loss:.2f}"
     )
+
+    summary.add_scalar("Loss/train", loss, epoch)
+    summary.add_scalar("Accuracy/train", train_accuracy, epoch)
 
 
 print("Finished training")

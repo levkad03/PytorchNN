@@ -28,7 +28,7 @@ class_names = [
     "Zebra",
 ]
 
-image_path = "./data/test_images/istockphoto-140157656-612x612.jpg"
+image_path = "./data/test_images/istockphoto-94323862-612x612.jpg"
 
 image = cv2.imread(image_path)
 
